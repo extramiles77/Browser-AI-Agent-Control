@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.8.1 — 2026-11-19
+
+Ekstensi 2.5.1 · extension-core 2.3.1 (server tetap 2.6.2)
+
+### Diperbaiki
+
+- **Connect now tanpa server tidak lagi diam saja**: kalau tidak ada server yang ditemukan, popup kini menjelaskan _"No server found…"_ beserta cara menyalakannya (aplikasi AI, atau `pnpm daemon`).
+- Pesan error **Connect** saat server sudah berhenti kini menjelaskan penyebab dan langkah berikutnya.
+
 ## 2.8.0 — 2026-11-19
 
 Server 2.6.2 · ekstensi 2.5.0 · extension-core 2.3.0 · protocol 2.2.0

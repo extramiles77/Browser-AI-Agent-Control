@@ -315,18 +315,54 @@ function WaitingSteps() {
 /** **Connect now**: undoes **Disconnect** and looks for the server at once rather than after the next retry */
 function ConnectButton() {
   const [searching, setSearching] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const connect = async () => {
     setSearching(true);
+    setNotFound(false);
     try {
       await sendBrowserControlMessage("connect");
     } catch (error) {
       console.warn("Couldn't reach the background", error);
     }
-    // The popup refreshes its view on its own; keep the button busy while the extension looks
-    setTimeout(() => setSearching(false), 2500);
+    // The popup refreshes its view on its own; keep the button busy while the extension looks, then say so if it found nothing
+    setTimeout(() => {
+      void sendBrowserControlMessage("getBrowserControl")
+        .then(({ connection }) =>
+          setNotFound(
+            connection.state === "searching" ||
+              connection.state === "disconnected",
+          ),
+        )
+        .catch(() => setNotFound(true))
+        .finally(() => setSearching(false));
+    }, 2500);
   };
   return (
-    <Button size="wide" disabled={searching} onClick={() => void connect()}>
+    <div className="space-y-2">
+      <ConnectNowButton
+        searching={searching}
+        onConnect={() => void connect()}
+      />
+      {notFound && (
+        <p role="status" className="text-xs text-destructive">
+          No server found. Start an AI app that uses {APP_NAME}, or run{" "}
+          <code className="font-mono">pnpm daemon</code> in the repository
+          folder, then click Connect now again.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ConnectNowButton({
+  searching,
+  onConnect,
+}: {
+  searching: boolean;
+  onConnect: () => void;
+}) {
+  return (
+    <Button size="wide" disabled={searching} onClick={onConnect}>
       {searching ? (
         <RefreshCwIcon className="animate-spin motion-reduce:animate-none" />
       ) : (

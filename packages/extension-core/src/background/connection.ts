@@ -369,7 +369,7 @@ export class RelayConnection {
     const waiting = this.#awaitingConsent;
     if (!waiting || this.#socket !== waiting.ws) {
       throw new Error(
-        "No Browser AI Agent Control server is waiting to connect",
+        "No Browser AI Agent Control server is waiting to connect: it stopped or disconnected. Start it again (an AI app, or pnpm daemon), then click Connect now",
       );
     }
     this.#awaitingConsent = null;
