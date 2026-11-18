@@ -1,8 +1,10 @@
+<p align="center">
+  <img src="assets/logo-wordmark.png" alt="Browser AI Agent Control" width="560">
+</p>
+
 # Browser AI Agent Control
 
 Browser AI Agent Control adalah tools otomasi browser untuk aplikasi dan agen AI (Claude Code, Claude Desktop, Cursor, VS Code, Antigravity, dll.) yang bekerja langsung di browser Chromium lokal Anda: Chrome, Edge, Brave, atau Arc. Agen memakai tab-nya sendiri, dalam sesi login Anda.
-
-![Browser AI Agent Control Logo](assets/logo-oval-1024.png)
 
 ---
 
@@ -54,6 +56,8 @@ Hasil build:
 - MCP server: `packages/mcp/dist/index.js`
 
 ### 2. Pasang ekstensi di Chrome
+
+<img src="assets/logo-icon.png" alt="Ikon ekstensi Browser AI Agent Control" width="96" align="right">
 
 1. Buka `chrome://extensions`.
 2. Aktifkan **Developer mode** di pojok kanan atas.
