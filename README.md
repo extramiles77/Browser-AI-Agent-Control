@@ -7,7 +7,7 @@
 Browser AI Agent Control adalah tools otomasi browser untuk aplikasi dan agen AI (Claude Code, Claude Desktop, Cursor, VS Code, Antigravity, dll.) yang bekerja langsung di browser Chromium lokal Anda: Chrome, Edge, Brave, atau Arc. Agen memakai tab-nya sendiri, dalam sesi login Anda.
 
 <p align="center">
-  <img src="assets/logo-oval-900.png" alt="Logo Browser AI Agent Control" width="900" height="900">
+  <img src="assets/logo-oval-400.png" alt="Logo Browser AI Agent Control" width="400" height="400">
 </p>
 
 ---
