@@ -5,8 +5,11 @@ import { DaemonAlreadyRunningError, startDaemon } from "@/daemon/daemon";
 import { createFileLogger } from "@/daemon/log";
 import { browserMcpHome, daemonLogPath, ensureHome } from "@/daemon/paths";
 
+/** `--keep-alive`: the longest delay `setTimeout` takes (about 24.8 days); `Infinity` would fire at once */
+const KEEP_ALIVE_IDLE_EXIT_MS = 2 ** 31 - 1;
+
 /**
- * The daemon process's entry: `node dist/daemon.js [--port <port>]`, started detached by a thin process. Logs to `~/.browser-ai-agent-control/daemon.log` (and stderr with `--stderr`, for running it by hand)
+ * The daemon process's entry: `node dist/daemon.js [--port <port>] [--stderr] [--keep-alive]`, started detached by a thin process. Logs to `~/.browser-ai-agent-control/daemon.log` (and stderr with `--stderr`, for running it by hand). `--keep-alive` (`pnpm daemon`) skips the idle exit, so the extension can connect and be allowed before any AI app runs
  */
 export async function runDaemon(options: {
   argv: string[];
@@ -20,8 +23,13 @@ export async function runDaemon(options: {
       Number.parseInt(value, 10),
     )
     .option("--stderr", "also log to stderr")
+    .option("--keep-alive", "don't exit when idle (for running it by hand)")
     .parse(options.argv);
-  const { port, stderr } = command.opts<{ port?: number; stderr?: boolean }>();
+  const { port, stderr, keepAlive } = command.opts<{
+    port?: number;
+    stderr?: boolean;
+    keepAlive?: boolean;
+  }>();
 
   const home = browserMcpHome();
   ensureHome(home);
@@ -37,7 +45,7 @@ export async function runDaemon(options: {
       port,
       version: options.version,
       createEngine: options.createEngine,
-      idleExitMs: options.idleExitMs,
+      idleExitMs: keepAlive ? KEEP_ALIVE_IDLE_EXIT_MS : options.idleExitMs,
       log,
     });
     for (const signal of ["SIGINT", "SIGTERM"] as const) {

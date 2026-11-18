@@ -1,11 +1,12 @@
 {
   "name": "browser-ai-agent-control",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "build": "pnpm -r build",
+    "daemon": "node packages/mcp/dist/daemon.js --stderr --keep-alive",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "smoke": "pnpm --filter @browser-ai-agent/extension smoke",

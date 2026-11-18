@@ -12,6 +12,12 @@ export const connectionStatusItem = storage.defineItem<ConnectionStatus>(
   { fallback: { state: "searching" } },
 );
 
+/** The user clicked **Disconnect** and hasn't clicked **Connect now**. In `storage.local`, so it holds across service worker and browser restarts */
+export const disconnectedItem = storage.defineItem<boolean>(
+  "local:browserControlDisconnected",
+  { fallback: false },
+);
+
 /** The user pressed **Stop** (or Cancel on Chrome's debugging bar) and hasn't pressed **Resume** */
 export const pausedItem = storage.defineItem<boolean>(
   "session:browserControlPaused",

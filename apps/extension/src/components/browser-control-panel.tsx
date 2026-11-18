@@ -1,6 +1,13 @@
 import { useState } from "react";
 
-import { KeyRoundIcon, PauseIcon, PlayIcon } from "lucide-react";
+import {
+  KeyRoundIcon,
+  PauseIcon,
+  PlayIcon,
+  PlugZapIcon,
+  RefreshCwIcon,
+  UnplugIcon,
+} from "lucide-react";
 
 import {
   type ConnectionStatus,
@@ -51,6 +58,7 @@ export function BrowserControlPanel() {
         onAllow={(publicKey) =>
           run(() => sendBrowserControlMessage("allowDaemon", { publicKey }))()
         }
+        onDisconnect={run(() => sendBrowserControlMessage("disconnect"))}
       />
 
       {paired && (
@@ -143,6 +151,9 @@ export function BrowserControlPanel() {
               Stop
             </Button>
           )}
+          <DisconnectButton
+            onDisconnect={run(() => sendBrowserControlMessage("disconnect"))}
+          />
         </div>
       ) : (
         <div className="pb-3" />
@@ -151,21 +162,59 @@ export function BrowserControlPanel() {
   );
 }
 
+/** **Disconnect**: closes the connection to the server and goes back to the screen for connecting (**Connect now**) */
+function DisconnectButton({ onDisconnect }: { onDisconnect: () => void }) {
+  return (
+    <Button variant="outline" size="wide" onClick={onDisconnect}>
+      <UnplugIcon />
+      Disconnect
+    </Button>
+  );
+}
+
 /**
- * One of three states: connected (or waiting for **Allow**), waiting for the server, or an update to make. A 0.1.x server answering on its port counts as an outdated server
+ * One of four states: connected (or waiting for **Allow**), disconnected by the user, waiting for the server, or an update to make. A 0.1.x server answering on its port counts as an outdated server
  */
 function ConnectionAlert({
   connection,
   legacyServer,
   onAllow,
+  onDisconnect,
 }: {
   connection: ConnectionStatus;
   legacyServer: boolean;
   onAllow: (publicKey: string) => void;
+  onDisconnect: () => void;
 }) {
+  if (connection.state === "disconnected") {
+    return (
+      <div
+        role="alert"
+        className="mx-4 mt-3 space-y-2.5 rounded-xl border bg-muted px-3 py-2.5"
+      >
+        <p className="flex items-center gap-2 font-medium">
+          <span
+            aria-hidden
+            className="size-2 shrink-0 rounded-full bg-muted-foreground/50"
+          />
+          Disconnected from the {APP_NAME} server
+        </p>
+        <p className="ps-4 text-muted-foreground">
+          Agents can't use this browser until you connect again.
+        </p>
+        <div className="ps-4">
+          <ConnectButton />
+        </div>
+      </div>
+    );
+  }
   if (connection.state === "connected") {
     return connection.pairing === "pending" ? (
-      <AllowAlert connection={connection} onAllow={onAllow} />
+      <AllowAlert
+        connection={connection}
+        onAllow={onAllow}
+        onDisconnect={onDisconnect}
+      />
     ) : (
       <>
         {legacyServer && <UpdateAlert kind="server" />}
@@ -214,21 +263,76 @@ function ConnectionAlert({
         />
         Waiting for the {APP_NAME} server
       </p>
-      <p className="ps-4 text-muted-foreground">
-        {connection.state === "anotherBrowser"
-          ? `Another browser is using ${APP_NAME}, or too many are connected. This one connects once there's room.`
-          : `Start an AI app that uses ${APP_NAME}. The extension connects on its own.`}
-      </p>
+      {connection.state === "anotherBrowser" ? (
+        <p className="ps-4 text-muted-foreground">
+          Another browser is using {APP_NAME}, or too many are connected. This
+          one connects once there's room.
+        </p>
+      ) : (
+        <WaitingSteps />
+      )}
     </div>
+  );
+}
+
+/**
+ * How the extension reaches the server, which it can't start itself (extensions can't run programs): an AI app with the MCP server starts it, or the user runs `pnpm daemon`. **Connect now** looks for it at once rather than after the next retry
+ */
+function WaitingSteps() {
+  return (
+    <div className="space-y-2.5 ps-4 text-muted-foreground">
+      <p>The extension connects on its own once the server runs:</p>
+      <ol className="list-decimal space-y-1 ps-4">
+        <li>
+          Open an AI app with the {APP_NAME} MCP server (restart it after adding
+          the server), and ask it to open a page.
+        </li>
+        <li>
+          Or start the server yourself: run{" "}
+          <code className="rounded bg-background px-1 py-px font-mono text-[12px] text-foreground">
+            pnpm daemon
+          </code>{" "}
+          in the repository folder.
+        </li>
+      </ol>
+      <ConnectButton />
+    </div>
+  );
+}
+
+/** **Connect now**: undoes **Disconnect** and looks for the server at once rather than after the next retry */
+function ConnectButton() {
+  const [searching, setSearching] = useState(false);
+  const connect = async () => {
+    setSearching(true);
+    try {
+      await sendBrowserControlMessage("connect");
+    } catch (error) {
+      console.warn("Couldn't reach the background", error);
+    }
+    // The popup refreshes its view on its own; keep the button busy while the extension looks
+    setTimeout(() => setSearching(false), 2500);
+  };
+  return (
+    <Button size="wide" disabled={searching} onClick={() => void connect()}>
+      {searching ? (
+        <RefreshCwIcon className="animate-spin motion-reduce:animate-none" />
+      ) : (
+        <PlugZapIcon />
+      )}
+      {searching ? "Looking for the server…" : "Connect now"}
+    </Button>
   );
 }
 
 function AllowAlert({
   connection,
   onAllow,
+  onDisconnect,
 }: {
   connection: Extract<ConnectionStatus, { state: "connected" }>;
   onAllow: (publicKey: string) => void;
+  onDisconnect: () => void;
 }) {
   return (
     <section
@@ -259,6 +363,7 @@ function AllowAlert({
       <Button size="wide" onClick={() => onAllow(connection.publicKey)}>
         Allow
       </Button>
+      <DisconnectButton onDisconnect={onDisconnect} />
     </section>
   );
 }

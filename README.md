@@ -96,6 +96,17 @@ Restart aplikasi AI setelah menambahkan konfigurasi.
 
 ### 4. Pairing pertama kali
 
+Ekstensi tersambung sendiri begitu server (daemon) berjalan. Ekstensi tidak bisa menyalakan server sendiri, karena Chrome melarang ekstensi menjalankan program. Server dinyalakan otomatis oleh aplikasi AI saat agen memakai browser, atau secara manual:
+
+```sh
+cd <repo>
+pnpm daemon   # tetap berjalan sampai dihentikan dengan Ctrl+C
+```
+
+Selama menunggu server, popup menampilkan langkah-langkah ini dan tombol **Connect now** untuk mencari server saat itu juga.
+
+Untuk memutus koneksi, klik **Disconnect** di popup. Ekstensi tidak tersambung lagi (termasuk setelah Chrome di-restart) sampai Anda menekan **Connect now**. Pairing tetap tersimpan, jadi tidak perlu Allow ulang.
+
 1. Minta AI membuka halaman web, misalnya _"Buka example.com"_.
 2. AI akan menampilkan 6 digit kode pairing.
 3. Klik ikon ekstensi **Browser AI Agent Control** di toolbar.

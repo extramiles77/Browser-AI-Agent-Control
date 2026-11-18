@@ -21,6 +21,7 @@ import {
   browserIdItem,
   browserLabelItem,
   connectionStatusItem,
+  disconnectedItem,
   lastActiveAppItem,
   lastFocusedAtItem,
   legacyPortItem,
@@ -235,7 +236,14 @@ export class BrowserControl {
   async #init(): Promise<void> {
     // The service worker restarted, so a connection the popup would show is gone (BrowserMCP/mcp#192)
     const status = await connectionStatusItem.getValue();
-    if (status.state === "connected") {
+    if (await disconnectedItem.getValue()) {
+      // The user disconnected before the restart: stay disconnected until **Connect now**
+      this.connection.markDisconnected();
+      await connectionStatusItem.setValue({ state: "disconnected" });
+    } else if (
+      status.state === "connected" ||
+      status.state === "disconnected"
+    ) {
       await connectionStatusItem.setValue({ state: "searching" });
     }
     await Promise.all([
@@ -709,6 +717,18 @@ export class BrowserControl {
     this.#report("daemon paired");
     await this.#updateBadge();
     await this.#sendState();
+  }
+
+  /** **Disconnect**: closes the connection to the daemon, which detaches the agents' tabs, and stays disconnected (across restarts) until `connect()` */
+  async disconnect(): Promise<void> {
+    await disconnectedItem.setValue(true);
+    await this.connection.disconnect();
+  }
+
+  /** **Connect now**: undoes **Disconnect** and looks for the daemon at once */
+  async connect(): Promise<void> {
+    await disconnectedItem.setValue(false);
+    await this.connection.connect();
   }
 
   /** Sets the port to look for the daemon on (the one given to its `--port`), or `null` for `RELAY_PORTS`, and looks again */

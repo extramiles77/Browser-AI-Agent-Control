@@ -85,6 +85,8 @@ export class RelayConnection {
   #attempt = 0;
   #lastMessageAt = 0;
   #stopped = false;
+  /** The user clicked **Disconnect**: no looking, retrying or reconnecting until `connect()` */
+  #disconnected = false;
 
   #legacySocket: WebSocket | null = null;
   #legacyProbing = false;
@@ -108,7 +110,41 @@ export class RelayConnection {
     }
   }
 
-  /** Looks for the daemon now instead of waiting for the next retry (e.g. when the popup opens) */
+  /** Whether the user disconnected (**Disconnect**) and hasn't connected again */
+  get isDisconnected(): boolean {
+    return this.#disconnected;
+  }
+
+  /** **Disconnect**: closes the connection and stops looking for the daemon until `connect()` */
+  async disconnect(): Promise<void> {
+    this.#disconnected = true;
+    clearTimeout(this.#timer);
+    this.#timer = undefined;
+    this.#legacySocket?.close();
+    if (this.#socket) {
+      // `#handleClose()` reports `disconnected`
+      this.#socket.close();
+      return;
+    }
+    await this.#options.setStatus({ state: "disconnected" });
+  }
+
+  /** Starts disconnected (the user disconnected before the service worker or browser restarted) */
+  markDisconnected(): void {
+    this.#disconnected = true;
+  }
+
+  /** **Connect now**: undoes `disconnect()` and looks for the daemon at once */
+  async connect(): Promise<void> {
+    if (this.#disconnected) {
+      this.#disconnected = false;
+      this.#attempt = 0;
+      await this.#options.setStatus({ state: "searching" });
+    }
+    this.connectNow();
+  }
+
+  /** Looks for the daemon now instead of waiting for the next retry (e.g. when the popup opens). Does nothing while disconnected */
   connectNow(): void {
     if (this.#socket || this.#cycling) {
       return;
@@ -161,7 +197,7 @@ export class RelayConnection {
   }
 
   async #cycle(): Promise<void> {
-    if (this.#socket || this.#cycling || this.#stopped) {
+    if (this.#socket || this.#cycling || this.#stopped || this.#disconnected) {
       return;
     }
     this.#cycling = true;
@@ -199,7 +235,7 @@ export class RelayConnection {
   }
 
   #scheduleRetry(): void {
-    if (this.#timer !== undefined || this.#stopped) {
+    if (this.#timer !== undefined || this.#stopped || this.#disconnected) {
       return;
     }
     const delays = RELAY_RECONNECT_DELAYS_MS;
@@ -387,6 +423,10 @@ export class RelayConnection {
     this.#options.onDisconnect();
 
     let status: ConnectionStatus | null = { state: "searching" };
+    if (this.#disconnected) {
+      await this.#options.setStatus({ state: "disconnected" });
+      return;
+    }
     if (code === RelayCloseCode.unsupportedProtocol) {
       status =
         reason === RelayUpdateReason.updateExtension
@@ -418,7 +458,12 @@ export class RelayConnection {
    * Looks for a 0.1.x server on `LEGACY_PORT` with a `no-cors` request, which resolves whenever anything answers HTTP there (0.1.x has no CORS), and connects to it with its WebSocket protocol, answering every command with `LEGACY_SERVER_MESSAGE`. 0.1.x passes the error on to the model as the tool's result
    */
   async #probeLegacy(): Promise<void> {
-    if (this.#legacySocket || this.#legacyProbing || this.#stopped) {
+    if (
+      this.#legacySocket ||
+      this.#legacyProbing ||
+      this.#stopped ||
+      this.#disconnected
+    ) {
       return;
     }
     this.#legacyProbing = true;

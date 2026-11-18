@@ -473,4 +473,57 @@ describe("the connection to the daemon", () => {
     await vi.advanceTimersByTimeAsync(5000);
     expect(legacy.at(-1)).toBe(false);
   });
+  it("Disconnect closes the connection, says so, and looks for the daemon no more: not on retries, the watchdog or the popup opening", async () => {
+    const { connection, ws, options, statuses, fetch } =
+      await connectAndWelcome({ isPaired: vi.fn(async () => true) });
+    await vi.waitFor(() => expect(options.onWelcome).toHaveBeenCalled());
+
+    await connection.disconnect();
+    await vi.waitFor(() => expect(ws.readyState).toBe(FakeWebSocket.CLOSED));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(statuses.at(-1)).toEqual({ state: "disconnected" });
+    expect(options.onDisconnect).toHaveBeenCalled();
+    expect(connection.isDisconnected).toBe(true);
+    expect(connection.isWelcomed).toBe(false);
+
+    const probes = fetch.calls.length;
+    connection.connectNow();
+    connection.ensureRunning();
+    connection.watchdog();
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(fetch.calls.length).toBe(probes);
+    expect(
+      FakeWebSocket.instances.filter((socket) =>
+        socket.url.includes("/extension"),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("Connect now after Disconnect looks for the daemon at once and connects", async () => {
+    const { connection, statuses } = setup({ 9010: "daemon" });
+    await connection.disconnect();
+    expect(statuses.at(-1)).toEqual({ state: "disconnected" });
+    connection.ensureRunning();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(FakeWebSocket.instances).toHaveLength(0);
+
+    await connection.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(connection.isDisconnected).toBe(false);
+    expect(statuses.at(-1)).toEqual({ state: "searching" });
+    expect(FakeWebSocket.latest("9010/extension")).toBeDefined();
+  });
+
+  it("stays disconnected across a restart (markDisconnected) until Connect now", async () => {
+    const { connection, fetch } = setup({ 9010: "daemon" });
+    connection.markDisconnected();
+    connection.ensureRunning();
+    connection.watchdog();
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(fetch.calls).toHaveLength(0);
+
+    await connection.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(probedPorts(fetch)).toEqual([9010]);
+  });
 });

@@ -46,6 +46,8 @@ export const TAB_GROUP_TEXT: Record<TabGroupColor, string> = {
 export type ConnectionStatus =
   /** Looking for the daemon on its ports (none found yet, or it went away) */
   | { state: "searching" }
+  /** The user clicked **Disconnect**: the extension doesn't look for the daemon until **Connect now** */
+  | { state: "disconnected" }
   | {
       state: "connected";
       port: number;

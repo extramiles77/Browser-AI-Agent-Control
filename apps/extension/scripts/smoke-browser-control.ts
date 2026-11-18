@@ -628,6 +628,34 @@ get text #out`,
     );
   });
 
+  await section("Disconnect and Connect now in the popup", async () => {
+    const popup = await openPopup();
+    await popup.getByRole("button", { name: "Disconnect" }).click();
+    await popup.getByText(/^Disconnected from the /).waitFor();
+    await popup.getByRole("button", { name: "Connect now" }).waitFor();
+    expect(
+      (await popup.getByRole("button", { name: "Stop" }).count()) === 0,
+      "no Stop while disconnected",
+    );
+    await shot(popup, "popup-disconnected");
+    const disconnected = await call(alpha, "get title");
+    expect(disconnected.isError, disconnected.text);
+    // Stays disconnected: the popup opening again (its `ping`) doesn't reconnect
+    await popup.reload();
+    await popup.getByText(/^Disconnected from the /).waitFor();
+    await popup.getByRole("button", { name: "Connect now" }).click();
+    // Allowed before, so it connects without asking again
+    await popup.getByText(/^Connected to the /).waitFor({ timeout: 15_000 });
+    await popup.getByRole("button", { name: "Stop" }).waitFor();
+    await shot(popup, "popup-reconnected");
+    await popup.close();
+    const reconnected = await retryCall(alpha, "get title", 15_000);
+    expect(
+      !reconnected.isError && reconnected.text.includes("Second page"),
+      reconnected.text,
+    );
+  });
+
   await section(
     "a second Chrome profile: tab list shows both, tab select across them",
     async () => {

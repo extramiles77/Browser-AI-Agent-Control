@@ -9,6 +9,10 @@ import type { BrowserControlView } from "./types";
 export type BrowserControlMessages = {
   /** Starts the background if the browser stopped it, and looks for the Browser AI Agent Control server now rather than at its next retry */
   ping: { input: void; output: void };
+  /** **Disconnect**: closes the connection to the Browser AI Agent Control server and stops looking for it until **Connect now** */
+  disconnect: { input: void; output: void };
+  /** **Connect now**: undoes **Disconnect** and looks for the server at once */
+  connect: { input: void; output: void };
   /** What the popup shows of browser control: the connection, the AI apps and their tabs, Stop or Resume */
   getBrowserControl: { input: void; output: BrowserControlView };
   /** **Stop**: detaches every tab and refuses agents' commands until **Resume** */
@@ -84,6 +88,8 @@ export function handleBrowserControlMessages(
     // The popup opening starts the background, and looks for the daemon now rather than at the next retry
     ping: () => browserControl?.connection.connectNow(),
     getBrowserControl: () => control().getView(),
+    disconnect: (_, sender) => fromPopup(sender).disconnect(),
+    connect: (_, sender) => fromPopup(sender).connect(),
     stopAgents: (_, sender) => fromPopup(sender).stop(),
     resumeAgents: (_, sender) => fromPopup(sender).resume(),
     allowDaemon: ({ publicKey }, sender) => fromPopup(sender).allow(publicKey),

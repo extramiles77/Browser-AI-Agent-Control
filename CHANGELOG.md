@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.7.0 — 2026-11-19
+
+Server 2.6.1 · ekstensi 2.4.0 · extension-core 2.2.0
+
+### Ditambahkan
+
+- **Tombol Disconnect** di popup (saat terhubung dan saat menunggu **Allow**): memutus koneksi ke server dan kembali ke tampilan awal untuk connect. Ekstensi tidak tersambung otomatis lagi, termasuk setelah Chrome di-restart, sampai Anda menekan **Connect now**. Pairing tetap tersimpan, jadi connect ulang tidak perlu Allow lagi.
+- **Tombol Connect now** di popup saat menunggu server: ekstensi langsung mencari server tanpa menunggu jeda percobaan berikutnya.
+- **Langkah koneksi di popup**: pesan "Waiting for the server" kini menjelaskan cara menyalakan server (lewat aplikasi AI, atau `pnpm daemon`).
+- **`pnpm daemon`**: menyalakan server secara manual tanpa aplikasi AI, dengan opsi baru `--keep-alive` agar server tidak berhenti setelah 10 menit menganggur. Berguna untuk pairing (**Allow**) sebelum membuka aplikasi AI.
+
 ## 2.6.1 — 2026-11-19
 
 Ekstensi 2.3.1 (server tetap 2.6.0)
