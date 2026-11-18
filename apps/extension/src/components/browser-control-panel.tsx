@@ -117,31 +117,36 @@ export function BrowserControlPanel() {
         </section>
       )}
 
-      <div className="mt-3 space-y-2 border-t bg-muted/60 px-4 py-3">
-        {view.paused && (
-          <p className="text-muted-foreground">
-            Agents are paused until you resume them.
-          </p>
-        )}
-        {view.paused ? (
-          <Button
-            size="wide"
-            onClick={run(() => sendBrowserControlMessage("resumeAgents"))}
-          >
-            <PlayIcon />
-            Resume
-          </Button>
-        ) : (
-          <Button
-            variant="destructive"
-            size="wide"
-            onClick={run(() => sendBrowserControlMessage("stopAgents"))}
-          >
-            <PauseIcon />
-            Stop
-          </Button>
-        )}
-      </div>
+      {/* Stop and Resume only once a server is connected and allowed: before that there are no agents to stop, and a Resume left from an earlier session reads as if the extension were connected. A pause from before carries over and shows Resume as soon as the server is allowed */}
+      {paired ? (
+        <div className="mt-3 space-y-2 border-t bg-muted/60 px-4 py-3">
+          {view.paused && (
+            <p className="text-muted-foreground">
+              Agents are paused until you resume them.
+            </p>
+          )}
+          {view.paused ? (
+            <Button
+              size="wide"
+              onClick={run(() => sendBrowserControlMessage("resumeAgents"))}
+            >
+              <PlayIcon />
+              Resume
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              size="wide"
+              onClick={run(() => sendBrowserControlMessage("stopAgents"))}
+            >
+              <PauseIcon />
+              Stop
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="pb-3" />
+      )}
     </div>
   );
 }

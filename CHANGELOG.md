@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.6.1 — 2026-11-19
+
+Ekstensi 2.3.1 (server tetap 2.6.0)
+
+### Diubah
+
+- Tombol **Stop**/**Resume** di popup hanya muncul setelah ekstensi terhubung dan server sudah di-**Allow**. Sebelumnya tombol ini tampil saat masih menunggu server, sehingga **Resume** dari sesi sebelumnya terlihat seolah-olah ekstensi sudah terhubung. Status pause yang tersimpan tetap berlaku dan **Resume** muncul begitu server di-Allow.
+
 ## 2.6.0 — 2026-11-19
 
 Server `@browser-ai-agent/mcp` 2.6.0 · ekstensi 2.3.0 · protocol dan extension-core 2.1.0
