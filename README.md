@@ -134,9 +134,3 @@ Test dan smoke test tidak pernah menyentuh port 9009–9012 atau `~/.browser-ai-
 ### Signing key ekstensi
 
 ID ekstensi diturunkan dari public key di `apps/extension/extension-key.ts`. Private key-nya tidak disimpan di repo; key itu hanya dibutuhkan untuk membuat paket `.crx` dengan ID yang sama. Jika Anda mengganti key, perbarui juga `SELF_BUILT_EXTENSION_ID` di `packages/protocol/src/index.ts` (test `extension-key.test.ts` memeriksa keduanya cocok).
-
----
-
-## Lisensi
-
-Apache License 2.0, lihat [LICENSE](LICENSE). Proyek ini diturunkan dari [Browser MCP](https://github.com/BrowserMCP/mcp) (Apache-2.0); atribusi dan daftar perubahan ada di [NOTICE](NOTICE).
