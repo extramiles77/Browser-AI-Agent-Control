@@ -53,6 +53,8 @@ export type RelayConnectionOptions = {
     port: number,
     code: string | null,
   ) => Promise<void>;
+  /** When set, a key the user didn't allow waits for their consent (**Connect**, `pair()`) before the nonces are exchanged and a code shown; without it the exchange starts at once */
+  onConsentNeeded?: (welcome: Welcome, port: number) => Promise<void>;
   onRequest: (request: ExtensionRequest) => Promise<unknown>;
   setStatus: (status: ConnectionStatus) => Promise<void>;
   /** A 0.1.x server answers on the legacy port, or stopped answering */
@@ -87,6 +89,9 @@ export class RelayConnection {
   #stopped = false;
   /** The user clicked **Disconnect**: no looking, retrying or reconnecting until `connect()` */
   #disconnected = false;
+  /** A daemon with a key the user didn't allow, which proved its key and waits for **Connect** (`pair()`) */
+  #awaitingConsent: { ws: WebSocket; port: number; welcome: Welcome } | null =
+    null;
 
   #legacySocket: WebSocket | null = null;
   #legacyProbing = false;
@@ -333,6 +338,14 @@ export class RelayConnection {
     }
     let code: string | null = null;
     if (!(await this.#options.isPaired(welcome.publicKey))) {
+      if (this.#options.onConsentNeeded) {
+        // No nonce, so no code, until the user chooses to connect to this server. Accepted meanwhile, like a pending pairing: requests get browser control's "click Connect" answer
+        this.#awaitingConsent = { ws, port, welcome };
+        this.#welcomed = true;
+        this.#attempt = 0;
+        await this.#options.onConsentNeeded(welcome, port);
+        return;
+      }
       const outcome = await this.#exchangePairingNonces(ws, welcome);
       if (outcome === "mismatch") {
         await this.#distrust(ws, "The reveal didn't match the commitment");
@@ -349,6 +362,29 @@ export class RelayConnection {
     this.#welcomed = true;
     this.#attempt = 0;
     await this.#options.onWelcome(welcome, port, code);
+  }
+
+  /** **Connect** for a daemon waiting for consent (`onConsentNeeded`): exchanges the nonces, which gives the pairing code, and reports the welcome with it (`onWelcome`) */
+  async pair(): Promise<void> {
+    const waiting = this.#awaitingConsent;
+    if (!waiting || this.#socket !== waiting.ws) {
+      throw new Error(
+        "No Browser AI Agent Control server is waiting to connect",
+      );
+    }
+    this.#awaitingConsent = null;
+    const { ws, port, welcome } = waiting;
+    const outcome = await this.#exchangePairingNonces(ws, welcome);
+    if (outcome === "mismatch") {
+      await this.#distrust(ws, "The reveal didn't match the commitment");
+      return;
+    }
+    if (outcome === null || this.#socket !== ws) {
+      return;
+    }
+    this.#welcomed = true;
+    this.#attempt = 0;
+    await this.#options.onWelcome(welcome, port, outcome);
   }
 
   /**
@@ -418,6 +454,7 @@ export class RelayConnection {
     }
     const wasWelcomed = this.#welcomed;
     this.#socket = null;
+    this.#awaitingConsent = null;
     this.#revealWaiter?.(null);
     this.#welcomed = false;
     this.#options.onDisconnect();

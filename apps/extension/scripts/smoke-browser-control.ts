@@ -34,6 +34,7 @@ import { type WebSocket, WebSocketServer } from "ws";
 import {
   LEGACY_SERVER_MESSAGE,
   NO_EXTENSION_MESSAGE,
+  pairingRequiredMessage,
 } from "@browser-ai-agent/protocol";
 
 type Chrome = typeof import("wxt/browser").browser;
@@ -149,13 +150,29 @@ try {
 
   let pairingCode = "";
   await section(
-    "pairing: the tool asks for Allow with the popup's code",
+    "pairing: Connect first (no code before it), then Allow with the popup's code",
     async () => {
       await inWorker(async (port) => {
         const { chrome } = globalThis as unknown as { chrome: Chrome };
         await chrome.storage.local.set({ relayPort: port });
       }, relayPort);
       const popup = await openPopup();
+      // A server the user never allowed: the popup asks to connect before any code exists
+      await popup
+        .getByRole("button", { name: "Connect", exact: true })
+        .waitFor({ timeout: 20_000 });
+      expect(
+        (await popup.getByText(/^Code: /).count()) === 0,
+        "no code before Connect",
+      );
+      const beforeConnect = await call(alpha, "get url");
+      expect(
+        beforeConnect.isError &&
+          beforeConnect.text === pairingRequiredMessage(),
+        `tool says ${JSON.stringify(beforeConnect.text)} before Connect`,
+      );
+      await shot(popup, "popup-consent");
+      await popup.getByRole("button", { name: "Connect", exact: true }).click();
       const codeText = await popup.getByText(/^Code: /).textContent({
         timeout: 20_000,
       });
@@ -688,6 +705,9 @@ get text #out`,
         );
         // This profile hasn't paired with the daemon: it waits for Allow, without stopping agents in the first
         const popup = await openPopup({ context: secondContext });
+        await popup
+          .getByRole("button", { name: "Connect", exact: true })
+          .click({ timeout: 20_000 });
         await popup.getByText(/^Code: /).waitFor({ timeout: 20_000 });
         const meanwhile = await call(alpha, "get url");
         expect(!meanwhile.isError, meanwhile.text);
@@ -769,16 +789,27 @@ get text #out`,
     const gamma = await connectClient("smoke-gamma", "Smoke Gamma", {
       home: otherHome,
     });
+    // A key the user never allowed: once the new daemon runs and the extension found it, Connect first, then the code
+    const waiting = await retryCall(
+      gamma,
+      "get url",
+      20_000,
+      (r) => r.text === pairingRequiredMessage(),
+    );
+    expect(waiting.isError, waiting.text);
+    const popup = await openPopup();
+    await popup
+      .getByRole("button", { name: "Connect", exact: true })
+      .click({ timeout: 20_000 });
     const result = await retryCall(
       gamma,
       "get url",
       20_000,
-      // A moment after connecting, before the extension's nonce arrives, the message has no code yet
+      // A moment after Connect, before the extension's nonce arrives, the message has no code yet
       (r) => r.text.includes("The code is"),
     );
     const code = /The code is (\d{3} \d{3})$/.exec(result.text)?.[1];
     expect(result.isError && !!code && code !== pairingCode, result.text);
-    const popup = await openPopup();
     await popup.getByText(`Code: ${code}`).waitFor();
     await shot(popup, "popup-allow-new-key");
     await popup.close();

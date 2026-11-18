@@ -164,6 +164,7 @@ export class BrowserControl {
         }),
       isPaired: (publicKey) => isPairedKey(publicKey),
       onWelcome: (welcome, port, code) => this.#onWelcome(welcome, port, code),
+      onConsentNeeded: (welcome, port) => this.#onConsentNeeded(welcome, port),
       onRequest: (request) => this.#handleRequest(request),
       setStatus: (status) => this.#setStatus(status),
       setLegacyServer: (present) => this.#setLegacyServer(present),
@@ -279,6 +280,25 @@ export class BrowserControl {
   // --- The daemon ---
 
   /** `code`: the pairing code the connection agreed on with the daemon, for a key the user didn't allow; null for one they did */
+  /** A server the user didn't allow proved its key: the popup asks whether to connect (**Connect**) before any code is shown */
+  async #onConsentNeeded(welcome: Welcome, port: number): Promise<void> {
+    const { publicKey, daemonVersion, protocol } = welcome;
+    this.#daemon = { publicKey, code: null, paired: false };
+    await this.#setStatus({
+      state: "connected",
+      port,
+      daemonVersion,
+      publicKey,
+      pairing: "consent",
+    });
+    this.#report("daemon connected", {
+      protocol,
+      daemonVersion,
+      paired: false,
+    });
+    await this.#updateBadge();
+  }
+
   async #onWelcome(
     welcome: Welcome,
     port: number,
@@ -717,6 +737,11 @@ export class BrowserControl {
     this.#report("daemon paired");
     await this.#updateBadge();
     await this.#sendState();
+  }
+
+  /** **Connect** for a server waiting for consent: exchanges the pairing nonces, so the popup shows the code next to **Allow** */
+  async pair(): Promise<void> {
+    await this.connection.pair();
   }
 
   /** **Disconnect**: closes the connection to the daemon, which detaches the agents' tabs, and stays disconnected (across restarts) until `connect()` */

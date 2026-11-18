@@ -107,11 +107,11 @@ Selama menunggu server, popup menampilkan langkah-langkah ini dan tombol **Conne
 
 Untuk memutus koneksi, klik **Disconnect** di popup. Ekstensi tidak tersambung lagi (termasuk setelah Chrome di-restart) sampai Anda menekan **Connect now**. Pairing tetap tersimpan, jadi tidak perlu Allow ulang.
 
-1. Minta AI membuka halaman web, misalnya _"Buka example.com"_.
-2. AI akan menampilkan 6 digit kode pairing.
-3. Klik ikon ekstensi **Browser AI Agent Control** di toolbar.
+1. Minta AI membuka halaman web, misalnya _"Buka example.com"_. Server menyala dan ekstensi menemukannya (ikon ekstensi menampilkan **?**).
+2. Klik ikon ekstensi **Browser AI Agent Control** di toolbar. Popup bertanya _"Connect to the Browser AI Agent Control server?"_. Klik **Connect** hanya jika Anda memang memakai aplikasi AI tersebut.
+3. Popup dan AI kini menampilkan 6 digit kode pairing. Kode baru dibuat setelah Anda menekan Connect.
 4. Pastikan 6 digit di popup sama persis dengan kode dari AI, lalu klik **Allow**.
-5. Minta AI mengulangi perintahnya.
+5. Minta AI mengulangi perintahnya. Berikutnya server ini tersambung otomatis tanpa Connect/Allow lagi.
 
 ---
 

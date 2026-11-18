@@ -19,6 +19,8 @@ export type BrowserControlMessages = {
   stopAgents: { input: void; output: void };
   /** **Resume** after **Stop** */
   resumeAgents: { input: void; output: void };
+  /** **Connect** for a server the user hasn't allowed yet: exchanges the pairing nonces, so the popup and the AI app show the code to compare before **Allow** */
+  pair: { input: void; output: void };
   /** **Allow**: trusts the connected Browser AI Agent Control server's key (pairing) */
   allowDaemon: { input: { publicKey: string }; output: void };
   /** Sets the port to look for the Browser AI Agent Control server on (its `--port`), or `null` for the default ports */
@@ -92,6 +94,7 @@ export function handleBrowserControlMessages(
     connect: (_, sender) => fromPopup(sender).connect(),
     stopAgents: (_, sender) => fromPopup(sender).stop(),
     resumeAgents: (_, sender) => fromPopup(sender).resume(),
+    pair: (_, sender) => fromPopup(sender).pair(),
     allowDaemon: ({ publicKey }, sender) => fromPopup(sender).allow(publicKey),
     setRelayPort: ({ port }, sender) => fromPopup(sender).setRelayPort(port),
     setBrowserLabel: ({ label }, sender) => fromPopup(sender).setLabel(label),

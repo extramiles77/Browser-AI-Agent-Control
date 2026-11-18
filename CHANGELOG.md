@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.8.0 — 2026-11-19
+
+Server 2.6.2 · ekstensi 2.5.0 · extension-core 2.3.0 · protocol 2.2.0
+
+### Diubah
+
+- **Langkah Connect sebelum kode pairing**: saat ekstensi pertama kali menemukan server yang belum pernah di-**Allow**, popup kini bertanya dulu _"Connect to the Browser AI Agent Control server?"_ (beserta port dan versinya). Kode pairing belum dibuat sebelum Anda menekan **Connect**, karena nonce ekstensi baru dikirim saat itu. Setelahnya, alur berlanjut seperti biasa: cocokkan kode dengan aplikasi AI, lalu **Allow**. Server yang sudah pernah di-Allow tetap tersambung otomatis.
+- Pesan untuk aplikasi AI sebelum Connect: _"Open the Browser AI Agent Control extension's popup and click Connect, then click Allow if the six digits match the ones shown here"_.
+
 ## 2.7.0 — 2026-11-19
 
 Server 2.6.1 · ekstensi 2.4.0 · extension-core 2.2.0

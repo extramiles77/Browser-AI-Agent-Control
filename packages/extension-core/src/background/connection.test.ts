@@ -526,4 +526,46 @@ describe("the connection to the daemon", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(probedPorts(fetch)).toEqual([9010]);
   });
+  it("with consent, waits for Connect before sending its nonce for a key the user didn't allow: no code until then", async () => {
+    const onConsentNeeded = vi.fn(async () => {});
+    const { connection, ws, daemon, options } = await connectAndWelcome({
+      onConsentNeeded,
+    });
+    await vi.waitFor(() => expect(onConsentNeeded).toHaveBeenCalled());
+    expect(onConsentNeeded).toHaveBeenCalledWith(daemon.message, 9010);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(ws.messages("pairingNonce")).toEqual([]);
+    expect(options.onWelcome).not.toHaveBeenCalled();
+    // Still open: waiting for the user isn't a timeout
+    expect(ws.readyState).toBe(FakeWebSocket.OPEN);
+
+    await connection.pair();
+    expect(ws.messages("pairingNonce")).toHaveLength(1);
+    const code = await daemon.code();
+    expect(options.onWelcome).toHaveBeenCalledWith(daemon.message, 9010, code);
+    expect(connection.isWelcomed).toBe(true);
+  });
+
+  it("with consent, connects at once to a key the user allowed", async () => {
+    const onConsentNeeded = vi.fn(async () => {});
+    const { ws, daemon, options } = await connectAndWelcome({
+      onConsentNeeded,
+      isPaired: vi.fn(async () => true),
+    });
+    await vi.waitFor(() => expect(options.onWelcome).toHaveBeenCalled());
+    expect(options.onWelcome).toHaveBeenCalledWith(daemon.message, 9010, null);
+    expect(onConsentNeeded).not.toHaveBeenCalled();
+    expect(ws.messages("pairingNonce")).toEqual([]);
+  });
+
+  it("Connect fails when no server waits for it, or once its connection closed", async () => {
+    const onConsentNeeded = vi.fn(async () => {});
+    const { connection, ws } = await connectAndWelcome({ onConsentNeeded });
+    await vi.waitFor(() => expect(onConsentNeeded).toHaveBeenCalled());
+    ws.serverClose(1001);
+    await vi.advanceTimersByTimeAsync(0);
+    await expect(connection.pair()).rejects.toThrow(/No .* server is waiting/);
+    const idle = setup({});
+    await expect(idle.connection.pair()).rejects.toThrow(/waiting to connect/);
+  });
 });

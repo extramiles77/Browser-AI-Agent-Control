@@ -59,6 +59,7 @@ export function BrowserControlPanel() {
           run(() => sendBrowserControlMessage("allowDaemon", { publicKey }))()
         }
         onDisconnect={run(() => sendBrowserControlMessage("disconnect"))}
+        onConnect={run(() => sendBrowserControlMessage("pair"))}
       />
 
       {paired && (
@@ -180,11 +181,13 @@ function ConnectionAlert({
   legacyServer,
   onAllow,
   onDisconnect,
+  onConnect,
 }: {
   connection: ConnectionStatus;
   legacyServer: boolean;
   onAllow: (publicKey: string) => void;
   onDisconnect: () => void;
+  onConnect: () => void;
 }) {
   if (connection.state === "disconnected") {
     return (
@@ -206,6 +209,15 @@ function ConnectionAlert({
           <ConnectButton />
         </div>
       </div>
+    );
+  }
+  if (connection.state === "connected" && connection.pairing === "consent") {
+    return (
+      <ConsentAlert
+        connection={connection}
+        onConnect={onConnect}
+        onDisconnect={onDisconnect}
+      />
     );
   }
   if (connection.state === "connected") {
@@ -322,6 +334,50 @@ function ConnectButton() {
       )}
       {searching ? "Looking for the server…" : "Connect now"}
     </Button>
+  );
+}
+
+/**
+ * The first step with a server the user never allowed: whether to connect to it at all. Only **Connect** makes the code (the extension's nonce is sent then), which **Allow** follows
+ */
+function ConsentAlert({
+  connection,
+  onConnect,
+  onDisconnect,
+}: {
+  connection: Extract<ConnectionStatus, { state: "connected" }>;
+  onConnect: () => void;
+  onDisconnect: () => void;
+}) {
+  return (
+    <section
+      role="alert"
+      aria-labelledby="browser-control-consent"
+      className="mx-4 mt-3 space-y-3 rounded-xl border border-primary/20 bg-primary-soft p-3.5"
+    >
+      <div className="flex gap-2">
+        <PlugZapIcon
+          className="mt-0.5 size-4 shrink-0 text-primary"
+          aria-hidden
+        />
+        <div className="space-y-1">
+          <h2 id="browser-control-consent" className="font-semibold">
+            Connect to the {APP_NAME} server?
+          </h2>
+          <p className="text-muted-foreground">
+            A server is running on this computer (port {connection.port},
+            version {connection.daemonVersion}). Connect only if you use{" "}
+            {APP_NAME} in an AI app. You'll then compare a code with the AI app
+            and click Allow.
+          </p>
+        </div>
+      </div>
+      <Button size="wide" onClick={onConnect}>
+        <PlugZapIcon />
+        Connect
+      </Button>
+      <DisconnectButton onDisconnect={onDisconnect} />
+    </section>
   );
 }
 

@@ -97,9 +97,9 @@ export async function pairingCode(
 
 /** What requests answer while the extension waits for **Allow**: without a code until the extension's nonce arrived (a moment after it connects) */
 export function pairingRequiredMessage(code?: string): string {
-  const message =
-    "Click Allow in the Browser AI Agent Control extension's popup";
-  return code ? `${message}. The code is ${code}` : message;
+  return code
+    ? `Click Allow in the Browser AI Agent Control extension's popup. The code is ${code}`
+    : "Open the Browser AI Agent Control extension's popup and click Connect, then click Allow if the six digits match the ones shown here";
 }
 
 function toBase64(bytes: Uint8Array): string {

@@ -66,6 +66,8 @@ async function start(
 async function startPaired(key: DaemonKey, options?: BrowserControlOptions) {
   const started = await start(undefined, options);
   await welcome(started.ws, key);
+  await waitForConsent();
+  await started.control.pair();
   await vi.waitFor(async () =>
     expect(await connectionStatusItem.getValue()).toMatchObject({
       state: "connected",
@@ -74,6 +76,17 @@ async function startPaired(key: DaemonKey, options?: BrowserControlOptions) {
   );
   await started.control.allow(key.publicKey);
   return started;
+}
+
+/** Waits for the popup's **Connect** step: a server the user never allowed, with no code yet */
+async function waitForConsent() {
+  await vi.waitFor(async () =>
+    expect(await connectionStatusItem.getValue()).toMatchObject({
+      state: "connected",
+      pairing: "consent",
+    }),
+  );
+  expect(await connectionStatusItem.getValue()).not.toHaveProperty("code");
 }
 
 let nextRequestId = 1;
@@ -146,10 +159,19 @@ describe("pairing", () => {
     });
 
     const daemon = await welcome(ws, key);
+    // First the popup asks whether to connect, with no code: no nonce went to the daemon yet
+    await waitForConsent();
+    expect(ws.messages("pairingNonce")).toEqual([]);
+    await vi.waitFor(async () => expect(await badgeText()).toBe("?"));
+    expect(
+      await request(ws, { method: "attach", params: { tabId: 1 } }),
+    ).toMatchObject({ error: pairingRequiredMessage() });
+
+    await control.pair();
     const status = await vi.waitFor(async () => {
       const status = await connectionStatusItem.getValue();
-      if (status.state !== "connected") {
-        throw new Error("Not connected yet");
+      if (status.state !== "connected" || status.pairing !== "pending") {
+        throw new Error("No code yet");
       }
       return status;
     });
@@ -217,6 +239,9 @@ describe("pairing", () => {
     // Another key on the port (a deleted ~/.browser-ai-agent-control, or another program)
     const other = await start();
     await welcome(other.ws, await createDaemonKey());
+    await waitForConsent();
+    expect(other.ws.messages("pairingNonce")).toEqual([]);
+    await other.control.pair();
     await vi.waitFor(async () =>
       expect(await connectionStatusItem.getValue()).toMatchObject({
         pairing: "pending",
@@ -231,6 +256,8 @@ describe("pairing", () => {
     const key = await createDaemonKey();
     const { ws, control } = await start();
     await welcome(ws, key, { badReveal: true });
+    await waitForConsent();
+    await control.pair();
 
     await vi.waitFor(() => expect(ws.readyState).toBe(FakeWebSocket.CLOSED));
     expect(await connectionStatusItem.getValue()).toEqual({
@@ -1415,6 +1442,8 @@ describe("this browser profile (several browsers on one daemon)", () => {
     });
     const key = await createDaemonKey();
     await welcome(ws, key);
+    await waitForConsent();
+    await control.pair();
     await vi.waitFor(async () =>
       expect(await connectionStatusItem.getValue()).toMatchObject({
         pairing: "pending",

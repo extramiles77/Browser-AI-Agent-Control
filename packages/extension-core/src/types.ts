@@ -56,8 +56,8 @@ export type ConnectionStatus =
       publicKey: string;
       /** The six-digit pairing code for this connection (`pairingCode()`), when the key wasn't allowed yet as it connected */
       code?: string;
-      /** `pending` until the user clicks **Allow** for this key */
-      pairing: "paired" | "pending";
+      /** For a key the user didn't allow: `consent` until they click **Connect** (no code yet), then `pending` with the code until they click **Allow** */
+      pairing: "paired" | "pending" | "consent";
     }
   /** The program on the port couldn't sign the challenge with the key it sent, so it isn't offered **Allow** */
   | { state: "untrusted" }
