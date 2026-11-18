@@ -1,0 +1,19 @@
+{
+  "name": "@browser-ai-agent/protocol",
+  "version": "2.0.0",
+  "private": true,
+  "description": "The protocol between Browser AI Agent Control's extension and its daemon",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "devtools-protocol": "^0.0.1525085",
+    "typescript": "^7.0.2"
+  }
+}

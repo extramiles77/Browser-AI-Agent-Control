@@ -1,0 +1,13 @@
+Browser AI Agent Control
+Copyright 2026 extramiles77
+
+This product is derived from Browser MCP 2.5.0 (https://browsermcp.io,
+https://github.com/BrowserMCP/mcp), Copyright Browser MCP, licensed under the
+Apache License, Version 2.0.
+
+Changes from Browser MCP include: renamed packages, protocol product name,
+status endpoint and state directory; an extension signing key and ID of its
+own; the Chrome Web Store extension ID removed from the daemon's allowlist;
+renamed identifiers injected into pages; updated documentation and links.
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).

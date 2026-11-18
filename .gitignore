@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output (rebuild with `pnpm build`)
+dist/
+.output/
+.wxt/
+*.zip
+*.crx
+
+# Keys and secrets: never commit the extension's private key
+*.pem
+.env
+.env.*
+
+# Logs, caches, OS files
+*.log
+coverage/
+.DS_Store
+
+# Old copy of the extension build, signed with the previous key: load
+# apps/extension/.output/chrome-mv3 instead (safe to delete)
+chrome-extension/

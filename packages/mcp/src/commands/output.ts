@@ -1,0 +1,91 @@
+/** Output limits and the errors written for the model */
+
+/** Default cap per read command */
+export const READ_CAP = 10_000;
+/** `--max` can raise a read's cap up to this (`--max all`), a little under the response's cap so one such read fits whole with its status lines */
+export const READ_CAP_MAX = 75_000;
+/** Cap for a whole response. Claude Code refuses MCP results over 25K tokens, and snapshots run about 3 characters per token */
+export const RESPONSE_CAP = 80_000;
+/** Images per response (screenshots); more are left out with a note */
+export const MAX_IMAGES = 3;
+
+/** An error whose message is meant for the model as is */
+export class StepError extends Error {}
+
+/** The cap for a read: `--max N`, at most `READ_CAP_MAX`, which `--max all` asks for */
+export function readCap(flag: string | true | undefined): number {
+  if (flag === undefined || flag === true) return READ_CAP;
+  if (flag === "all") return READ_CAP_MAX;
+  const value = Number(flag);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new StepError(
+      `--max takes a number of characters or all, e.g. --max 2000`,
+    );
+  }
+  return Math.min(value, READ_CAP_MAX);
+}
+
+/**
+ * Cuts text to `max` characters at a line break when there's one nearby, and says how to read all of it or narrow it
+ */
+export function cap(
+  text: string,
+  max: number,
+  hint = 'narrow it with `find "<text>"`, a target (`snapshot <target>`), `--depth N` or `-i`',
+): string {
+  if (text.length <= max) return text;
+  let cut = text.lastIndexOf("\n", max);
+  if (cut < max * 0.8) cut = max;
+  const all =
+    max >= READ_CAP_MAX
+      ? ""
+      : text.length <= READ_CAP_MAX
+        ? "--max all reads all of it, or "
+        : `--max all reads the first ${READ_CAP_MAX}, or `;
+  return `${text.slice(0, cut)}\n… cut at ${cut} of ${text.length} characters: ${all}${hint}`;
+}
+
+/** Keeps the end of a log (the newest entries) when it's over `max` */
+export function capTail(text: string, max: number): string {
+  if (text.length <= max) return text;
+  let start = text.indexOf("\n", text.length - max);
+  if (start < 0) start = text.length - max;
+  return `… ${start} earlier characters cut; add --filter or raise --max\n${text.slice(start + 1)}`;
+}
+
+/** Turns a Playwright error into one line for the model, without its call log */
+export function errorMessage(error: unknown): string {
+  if (error instanceof StepError) return error.message;
+  const raw = error instanceof Error ? error.message : String(error);
+  let message = raw.split("\n")[0];
+  message = message.replace(
+    /^(page|locator|frame|elementHandle|keyboard|mouse|browserContext|cdpSession)\.\w+: /,
+    "",
+  );
+  message = message.replace(/^Error: /, "");
+  if (isPageClosedError(error)) {
+    return "The tab closed or was released. Run `tab list` and `tab select <id>`, or `goto <url>`";
+  }
+  return message;
+}
+
+/** Playwright's error for a Page that went away: the tab closed, was released, or its target detached (and may be re-attaching as a new Page) */
+export function isPageClosedError(error: unknown): boolean {
+  return /Target page, context or browser has been closed/.test(
+    error instanceof Error ? error.message : String(error),
+  );
+}
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Formats a value as compact JSON for `eval` and `cdp` */
+export function compactJson(value: unknown): string {
+  if (value === undefined) return "undefined";
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
+}
