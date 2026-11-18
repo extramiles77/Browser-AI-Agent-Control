@@ -18,6 +18,6 @@ dist/
 coverage/
 .DS_Store
 
-# Old copy of the extension build, signed with the previous key: load
-# apps/extension/.output/chrome-mv3 instead (safe to delete)
+# The extension to load unpacked, copied from apps/extension/.output/chrome-mv3
+# by `pnpm build`
 chrome-extension/

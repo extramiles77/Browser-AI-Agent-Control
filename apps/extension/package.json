@@ -1,12 +1,12 @@
 {
   "name": "@browser-ai-agent/extension",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "private": true,
   "description": "Browser AI Agent Control's extension for Chrome and other Chromium browsers, built from source",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "wxt build",
+    "build": "wxt build && node scripts/sync-unpacked.ts",
     "build:dev": "wxt build --mode development",
     "zip": "wxt zip",
     "typecheck": "wxt prepare && tsc --noEmit",

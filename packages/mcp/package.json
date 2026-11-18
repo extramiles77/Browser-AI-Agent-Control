@@ -1,6 +1,6 @@
 {
   "name": "@browser-ai-agent/mcp",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "MCP server for browser automation using Browser AI Agent Control",
   "homepage": "https://github.com/extramiles77/Browser-AI-Agent-Control#readme",
   "bugs": "https://github.com/extramiles77/Browser-AI-Agent-Control/issues",

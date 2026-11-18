@@ -121,7 +121,7 @@ function fromBase64(base64: string): Uint8Array<ArrayBuffer> {
 
 /** What tool calls answer while no 2.0 extension is connected (none, or a 1.x one, which only dials 9009) */
 export const NO_EXTENSION_MESSAGE =
-  "No browser is connected. Load the Browser AI Agent Control extension (apps/extension/.output/chrome-mv3) with Load unpacked in chrome://extensions (Developer mode on), or click Update there if it's already loaded";
+  "No browser is connected. Load the Browser AI Agent Control extension (the chrome-extension folder of its repository) with Load unpacked in chrome://extensions (Developer mode on), or click Update there if it's already loaded";
 
 /** How many browsers (profiles) a daemon connects at once. One more is refused with `RelayCloseCode.anotherBrowser` */
 export const MAX_BROWSERS = 8;

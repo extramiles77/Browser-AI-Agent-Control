@@ -4,10 +4,11 @@ import { CircleAlertIcon } from "lucide-react";
 import { browser } from "wxt/browser";
 
 const BUTTON_VARIANTS = {
-  default: "bg-primary text-primary-foreground hover:bg-primary/90",
-  destructive: "bg-destructive text-white hover:bg-destructive/90",
+  default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+  destructive:
+    "border border-destructive/25 bg-destructive-soft text-destructive hover:bg-destructive/10",
   outline: "border border-input bg-background hover:bg-accent",
-  ghost: "hover:bg-accent",
+  ghost: "text-muted-foreground hover:bg-accent hover:text-foreground",
   link: "text-foreground underline-offset-4 hover:underline",
 };
 
@@ -33,7 +34,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 ${BUTTON_VARIANTS[variant]} ${BUTTON_SIZES[size]} ${className}`}
       {...props}
     />
   );
@@ -53,7 +54,7 @@ export function Alert({
   return (
     <div
       role="alert"
-      className={`flex gap-2.5 rounded-lg border px-3 py-2.5 ${destructive ? "border-destructive/40 text-destructive" : ""}`}
+      className={`flex gap-2.5 rounded-xl border px-3 py-2.5 ${destructive ? "border-destructive/25 bg-destructive-soft text-destructive" : "bg-muted"}`}
     >
       <CircleAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
       <div className="min-w-0 space-y-1">

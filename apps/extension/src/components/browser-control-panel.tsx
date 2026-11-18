@@ -41,7 +41,7 @@ export function BrowserControlPanel() {
   return (
     <div className="flex flex-col">
       {error && (
-        <div className="px-4 pb-3">
+        <div className="px-4 pt-3">
           <ErrorAlert>{error}</ErrorAlert>
         </div>
       )}
@@ -60,7 +60,7 @@ export function BrowserControlPanel() {
         >
           <h2
             id="browser-control-apps"
-            className="text-xs font-medium text-muted-foreground"
+            className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
           >
             AI apps
           </h2>
@@ -117,7 +117,7 @@ export function BrowserControlPanel() {
         </section>
       )}
 
-      <div className="space-y-2 border-t px-4 py-3">
+      <div className="mt-3 space-y-2 border-t bg-muted/60 px-4 py-3">
         {view.paused && (
           <p className="text-muted-foreground">
             Agents are paused until you resume them.
@@ -164,13 +164,15 @@ function ConnectionAlert({
     ) : (
       <>
         {legacyServer && <UpdateAlert kind="server" />}
-        <p className="flex items-center gap-2 border-y bg-muted/60 px-4 py-2">
-          <span
-            aria-hidden
-            className="size-2 shrink-0 rounded-full bg-success"
-          />
-          Connected to the {APP_NAME} server
-        </p>
+        <div className="px-4 pt-3">
+          <p className="flex items-center gap-2.5 rounded-xl border border-success/25 bg-success-soft px-3 py-2.5 font-medium">
+            <span
+              aria-hidden
+              className="size-2 shrink-0 rounded-full bg-success ring-4 ring-success/20"
+            />
+            Connected to the {APP_NAME} server
+          </p>
+        </div>
       </>
     );
   }
@@ -183,7 +185,7 @@ function ConnectionAlert({
   // Searching, the server refused this browser (too many connected, or another one in use with servers before 2.4), or the program on the port couldn't be verified
   if (connection.state === "untrusted") {
     return (
-      <div className="px-4 pb-3">
+      <div className="px-4 pt-3">
         <Alert
           variant="destructive"
           title={`Waiting for the ${APP_NAME} server`}
@@ -196,11 +198,14 @@ function ConnectionAlert({
     );
   }
   return (
-    <div role="alert" className="space-y-1 border-y bg-muted/60 px-4 py-2.5">
+    <div
+      role="alert"
+      className="mx-4 mt-3 space-y-1 rounded-xl border bg-muted px-3 py-2.5"
+    >
       <p className="flex items-center gap-2 font-medium">
         <span
           aria-hidden
-          className="size-2 shrink-0 animate-pulse rounded-full bg-muted-foreground/60 motion-reduce:animate-none"
+          className="size-2 shrink-0 animate-pulse rounded-full bg-primary/70 motion-reduce:animate-none"
         />
         Waiting for the {APP_NAME} server
       </p>
@@ -224,10 +229,13 @@ function AllowAlert({
     <section
       role="alert"
       aria-labelledby="browser-control-allow"
-      className="space-y-3 border-t px-4 py-4"
+      className="mx-4 mt-3 space-y-3 rounded-xl border border-primary/20 bg-primary-soft p-3.5"
     >
       <div className="flex gap-2">
-        <KeyRoundIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <KeyRoundIcon
+          className="mt-0.5 size-4 shrink-0 text-primary"
+          aria-hidden
+        />
         <div className="space-y-1">
           <h2 id="browser-control-allow" className="font-semibold">
             Allow {APP_NAME} on this computer?
@@ -239,7 +247,7 @@ function AllowAlert({
         </div>
       </div>
       {connection.code && (
-        <p className="rounded-lg bg-muted py-2.5 text-center font-mono text-lg font-medium tracking-wide">
+        <p className="rounded-lg border border-primary/15 bg-background py-2.5 text-center font-mono text-lg font-semibold tracking-wider text-primary">
           Code: {connection.code}
         </p>
       )}
@@ -252,7 +260,7 @@ function AllowAlert({
 
 function UpdateAlert({ kind }: { kind: "server" | "extension" }) {
   return (
-    <div className="px-4 pb-3">
+    <div className="px-4 pt-3">
       <Alert variant="destructive" title={`Update the ${APP_NAME} ${kind}`}>
         {kind === "server"
           ? "Get the latest source and build it again (git pull, pnpm install, pnpm build), then restart the AI app."

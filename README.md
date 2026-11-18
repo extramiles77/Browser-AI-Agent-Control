@@ -28,6 +28,7 @@ Browser AI Agent Control adalah tools otomasi browser untuk aplikasi dan agen AI
 
 ```
 Browser-AI-Agent-Control/
+├── chrome-extension/         Ekstensi siap pasang (Load unpacked), dibuat ulang oleh `pnpm build`
 ├── apps/
 │   └── extension/            Source ekstensi (WXT + React). Hasil build: .output/chrome-mv3
 ├── packages/
@@ -56,7 +57,7 @@ pnpm build
 
 Hasil build:
 
-- Ekstensi: `apps/extension/.output/chrome-mv3`
+- Ekstensi: `chrome-extension/` (salinan otomatis dari `apps/extension/.output/chrome-mv3`)
 - MCP server: `packages/mcp/dist/index.js`
 
 ### 2. Pasang ekstensi di Chrome
@@ -65,7 +66,7 @@ Hasil build:
 
 1. Buka `chrome://extensions`.
 2. Aktifkan **Developer mode** di pojok kanan atas.
-3. Klik **Load unpacked** lalu pilih folder `apps/extension/.output/chrome-mv3`.
+3. Klik **Load unpacked** lalu pilih folder `chrome-extension` di dalam repo.
 4. Pastikan ID ekstensi `nnefnmigpdhmjibkfiliklaiolihklai`, lalu pin ke toolbar.
 
 ### 3. Daftarkan MCP server di aplikasi AI

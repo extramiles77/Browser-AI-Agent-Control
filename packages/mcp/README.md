@@ -7,7 +7,7 @@ The MCP server AI apps run (`node <repo>/packages/mcp/dist/index.js`). It drives
 Browser AI Agent Control lets AI apps such as Claude Code, Cursor and VS Code use your browser, logged in where you are, in tabs of their own. You need Chrome (or Edge or Brave), Node.js 24 or later and pnpm.
 
 1. Build everything from the repository root: `pnpm install && pnpm build`.
-2. Load the extension: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick `apps/extension/.output/chrome-mv3`. Pin it to the toolbar.
+2. Load the extension: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the repository's `chrome-extension` folder (`pnpm build` copies `apps/extension/.output/chrome-mv3` there). Pin it to the toolbar.
 3. Add the server to your AI app, and restart the app. In Claude Code: `claude mcp add --scope user browser-ai-agent-control -- node <repo>/packages/mcp/dist/index.js`. Most other apps, such as Cursor and Claude Desktop, take this:
 
    ```json

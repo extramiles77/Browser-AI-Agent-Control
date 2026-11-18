@@ -30,19 +30,19 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="w-80 text-[13px]">
-      <div className="flex items-center gap-1 px-2 py-2.5">
+      <div className="flex items-center gap-1 border-b px-2 py-3">
         <Button variant="ghost" size="icon" aria-label="Back" onClick={onBack}>
           <ArrowLeftIcon className="size-5 rtl:rotate-180" />
         </Button>
         <h1 className="text-[15px] font-semibold">Settings</h1>
       </div>
       {error && (
-        <div className="px-4 pb-3">
+        <div className="px-4 pt-3">
           <ErrorAlert>{error}</ErrorAlert>
         </div>
       )}
       {view && (
-        <div className="border-t px-4 py-3">
+        <div className="px-4 py-3">
           <LabelSetting
             // Remounts with the saved name, so the field shows it
             key={view.label ?? ""}
@@ -98,7 +98,7 @@ function LabelSetting({
       <div className="flex gap-2">
         <input
           id="settings-label"
-          className="h-8 w-full min-w-0 rounded-md border border-input bg-transparent px-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-8 w-full min-w-0 rounded-lg border border-input bg-background px-2.5 outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
           placeholder="e.g. Work"
           autoComplete="off"
           value={value}
@@ -153,7 +153,7 @@ function PortSetting({
       <div className="flex gap-2">
         <input
           id="settings-port"
-          className="h-8 w-full min-w-0 rounded-md border border-input bg-transparent px-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
+          className="h-8 w-full min-w-0 rounded-lg border border-input bg-background px-2.5 outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
           inputMode="numeric"
           placeholder={RELAY_PORTS.join(", ")}
           value={value}
